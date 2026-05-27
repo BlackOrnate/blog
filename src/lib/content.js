@@ -9,7 +9,8 @@ const contentModulesEn = import.meta.glob('../content-en/**/*.md', {
 })
 
 function stripCsdnToc(md) {
-  return md.replace(/^#{1,6}\s*目录\s*\n[\s\S]*?(?=\n#{1,3}\s)/m, '')
+  // Remove CSDN-injected catalog block (Chinese or English heading variants)
+  return md.replace(/^#{1,6}\s*(?:目录|Catalog|Table of Contents)\s*\n[\s\S]*?(?=\n#{1,3}\s)/m, '')
 }
 
 export async function loadPostContent(contentPath, lang = 'zh') {
@@ -18,7 +19,7 @@ export async function loadPostContent(contentPath, lang = 'zh') {
     const enLoader = contentModulesEn[enPath]
     if (enLoader) {
       const raw = await enLoader()
-      return raw
+      return stripCsdnToc(raw)
     }
     return null
   }

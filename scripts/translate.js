@@ -9,8 +9,9 @@ const CONTENT_ZH = path.join(ROOT, 'src/content')
 const CONTENT_EN = path.join(ROOT, 'src/content-en')
 const TITLES_FILE = path.join(ROOT, 'src/i18n/post-titles-en.js')
 const API_KEY = process.env.DEEPL_API_KEY
+const RETITLE_ONLY = process.argv.includes('--retitle')
 
-if (!API_KEY) {
+if (!API_KEY && !RETITLE_ONLY) {
   console.error('Error: DEEPL_API_KEY environment variable is required')
   console.error('Get your free key at https://www.deepl.com/pro-api')
   console.error('Run: $env:DEEPL_API_KEY = "your-key-here"; node scripts/translate.js')
@@ -18,9 +19,9 @@ if (!API_KEY) {
 }
 
 // Free keys end with :fx → use api-free subdomain; Pro keys use api subdomain
-const DEEPL_ENDPOINT = API_KEY.endsWith(':fx')
-  ? 'https://api-free.deepl.com/v2/translate'
-  : 'https://api.deepl.com/v2/translate'
+const DEEPL_ENDPOINT = API_KEY
+  ? (API_KEY.endsWith(':fx') ? 'https://api-free.deepl.com/v2/translate' : 'https://api.deepl.com/v2/translate')
+  : ''
 
 // Build contentPath → postId map by parsing posts.js source text
 const postsSource = fs.readFileSync(path.join(ROOT, 'src/data/posts.js'), 'utf-8')
@@ -93,11 +94,38 @@ async function translateWithDeepL(content) {
 }
 
 function extractFirstHeading(md) {
-  const m = md.match(/^#{1,6}\s+(.+)/m)
-  return m ? m[1].trim() : null
+  // Skip CSDN-injected catalog headings; return the first real article heading
+  for (const m of md.matchAll(/^#{1,6}\s+(.+)/mg)) {
+    const title = m[1].trim()
+    if (!/^(目录|Catalog|Table of Contents)$/i.test(title)) return title
+  }
+  return null
+}
+
+async function retitleOnly() {
+  const mdFiles = getAllMdFiles(CONTENT_ZH)
+  const titlesMap = {}
+  let updated = 0
+  for (const relPath of mdFiles) {
+    const destFile = path.join(CONTENT_EN, relPath)
+    if (!fs.existsSync(destFile)) continue
+    const relPathForward = relPath.replace(/\\/g, '/')
+    const postId = pathToId[relPathForward]
+    if (!postId) continue
+    const enContent = fs.readFileSync(destFile, 'utf-8')
+    const title = extractFirstHeading(enContent)
+    if (title) { titlesMap[postId] = title; updated++ }
+  }
+  const lines = Object.entries(titlesMap)
+    .map(([id, t]) => `  ${id}: ${JSON.stringify(t)}`)
+    .join(',\n')
+  fs.writeFileSync(TITLES_FILE, `export const postTitlesEn = {\n${lines},\n}\n`, 'utf-8')
+  console.log(`Retitled ${updated} posts → src/i18n/post-titles-en.js`)
 }
 
 async function main() {
+  if (RETITLE_ONLY) return retitleOnly()
+
   const mdFiles = getAllMdFiles(CONTENT_ZH)
   const total = mdFiles.length
   console.log(`Found ${total} markdown files`)
