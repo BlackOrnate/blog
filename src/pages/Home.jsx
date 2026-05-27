@@ -16,8 +16,8 @@ function TopColumnCard({ col }) {
       ? posts.filter((p) => children.some((c) => c.id === p.column)).length
       : posts.filter((p) => p.column === col.id).length
 
-  const name = lang === 'en' ? (col.nameEn || col.name) : col.name
-  const desc = lang === 'en' ? (col.descEn || col.description) : col.description
+  const name = lang === 'en' ? (col.nameEn ?? col.name) : col.name
+  const desc = lang === 'en' ? (col.descEn ?? col.description) : col.description
 
   return (
     <Link to={`/column/${col.id}`} className="column-card">
@@ -67,7 +67,7 @@ export default function Home() {
         <div className="post-grid">
           {recentPosts.map((post) => {
             const col = getColumn(post.column)
-            const colName = lang === 'en' ? (col?.nameEn || col?.name) : col?.name
+            const colName = lang === 'en' ? (col?.nameEn ?? col?.name) : col?.name
             const title = lang === 'en' ? (postTitlesEn[post.id] || post.title) : post.title
             return (
               <Link key={post.id} to={`/post/${post.id}`} className="post-card">
