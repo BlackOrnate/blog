@@ -10,6 +10,7 @@ const CONTENT_EN = path.join(ROOT, 'src/content-en')
 const TITLES_FILE = path.join(ROOT, 'src/i18n/post-titles-en.js')
 const API_KEY = process.env.DEEPL_API_KEY
 const RETITLE_ONLY = process.argv.includes('--retitle')
+const TRANSLATE_TITLES = process.argv.includes('--translate-titles')
 
 if (!API_KEY && !RETITLE_ONLY) {
   console.error('Error: DEEPL_API_KEY environment variable is required')
@@ -123,8 +124,42 @@ async function retitleOnly() {
   console.log(`Retitled ${updated} posts → src/i18n/post-titles-en.js`)
 }
 
+async function translateTitlesOnly() {
+  // Extract id + Chinese title pairs from posts.js
+  const entries = []
+  for (const m of postsSource.matchAll(/id:\s*(\d+),\s*\n\s*title:\s*'([^']+)'/g)) {
+    entries.push({ id: Number(m[1]), title: m[2] })
+  }
+  console.log(`Translating ${entries.length} article titles via DeepL...`)
+
+  // DeepL accepts up to 50 texts per request
+  const BATCH = 50
+  const titlesMap = {}
+  for (let i = 0; i < entries.length; i += BATCH) {
+    const batch = entries.slice(i, i + BATCH)
+    const res = await fetch(DEEPL_ENDPOINT, {
+      method: 'POST',
+      headers: { Authorization: `DeepL-Auth-Key ${API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: batch.map(e => e.title), source_lang: 'ZH', target_lang: 'EN-US' }),
+    })
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`DeepL API error ${res.status}: ${body}`)
+    }
+    const data = await res.json()
+    batch.forEach((e, j) => { titlesMap[e.id] = data.translations[j].text })
+  }
+
+  const lines = Object.entries(titlesMap)
+    .map(([id, t]) => `  ${id}: ${JSON.stringify(t)}`)
+    .join(',\n')
+  fs.writeFileSync(TITLES_FILE, `export const postTitlesEn = {\n${lines},\n}\n`, 'utf-8')
+  console.log(`Done → src/i18n/post-titles-en.js`)
+}
+
 async function main() {
   if (RETITLE_ONLY) return retitleOnly()
+  if (process.argv.includes('--translate-titles')) return translateTitlesOnly()
 
   const mdFiles = getAllMdFiles(CONTENT_ZH)
   const total = mdFiles.length
