@@ -14,6 +14,8 @@ import Breadcrumb from '../components/Breadcrumb'
 import TableOfContents from '../components/TableOfContents'
 import PostNav from '../components/PostNav'
 import CodeBlock from '../components/CodeBlock'
+import { useLang } from '../contexts/LangContext'
+import { postTitlesEn } from '../i18n/post-titles-en'
 
 const rehypeHighlightOptions = { detect: true, ignoreMissing: true }
 
@@ -117,11 +119,13 @@ const mdComponents = {
 
 export default function PostDetail() {
   const { id } = useParams()
+  const { lang, t } = useLang()
   const post = getPost(id)
 
   const [content, setContent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [headings, setHeadings] = useState([])
+  const [showFallback, setShowFallback] = useState(false)
   const contentRef = useRef(null)
   const isFirstMount = useRef(true)
 
@@ -145,11 +149,20 @@ export default function PostDetail() {
     isFirstMount.current = false
     setLoading(true)
     setHeadings([])
-    loadPostContent(post.contentPath).then((raw) => {
+    setShowFallback(false)
+
+    loadPostContent(post.contentPath, lang).then((raw) => {
+      if (raw === null && lang === 'en') {
+        setShowFallback(true)
+        return loadPostContent(post.contentPath, 'zh').then((zhRaw) => {
+          setContent(zhRaw)
+          setLoading(false)
+        })
+      }
       setContent(raw)
       setLoading(false)
     })
-  }, [post?.id])
+  }, [post?.id, lang])
 
   // After content renders: restore saved position or scroll to top
   useEffect(() => {
@@ -174,7 +187,6 @@ export default function PostDetail() {
           text: el.textContent.trim(),
           id: el.id,
         }))
-      // Normalize so the shallowest heading always maps to level 2 (TOC CSS base)
       const minLevel = found.length ? Math.min(...found.map((h) => h.level)) : 2
       const shift = minLevel - 2
       setHeadings(found.map((h) => ({ ...h, level: h.level - shift })))
@@ -187,8 +199,8 @@ export default function PostDetail() {
       <div className="container container--narrow">
         <div className="not-found" style={{ padding: '4rem 0' }}>
           <h1>404</h1>
-          <p>文章未找到</p>
-          <Link to="/" className="btn">返回首页</Link>
+          <p>{t.post.notFound}</p>
+          <Link to="/" className="btn">{t.post.backHome}</Link>
         </div>
       </div>
     )
@@ -198,11 +210,17 @@ export default function PostDetail() {
   const ancestors = getColumnAncestors(post.column)
   const { prev, next } = getAdjacentPosts(post)
 
+  const displayTitle = lang === 'en' ? (postTitlesEn[post.id] ?? post.title) : post.title
+  const colName = lang === 'en' ? (column?.nameEn ?? column?.name) : column?.name
+
   const breadcrumbItems = [
-    { label: '专栏', href: '/columns' },
-    ...ancestors.map((a) => ({ label: a.name, href: `/column/${a.id}` })),
-    { label: column?.name, href: `/column/${post.column}` },
-    { label: post.title },
+    { label: t.breadcrumb.columns, href: '/columns' },
+    ...ancestors.map((a) => ({
+      label: lang === 'en' ? (a.nameEn ?? a.name) : a.name,
+      href: `/column/${a.id}`,
+    })),
+    { label: colName, href: `/column/${post.column}` },
+    { label: displayTitle },
   ]
 
   const isPending = content && content.includes('内容待导入')
@@ -214,33 +232,34 @@ export default function PostDetail() {
         <Breadcrumb items={breadcrumbItems} />
 
         <header className="post-detail__header">
-          <h1 className="post-detail__title">{post.title}</h1>
+          <h1 className="post-detail__title">{displayTitle}</h1>
           <div className="post-detail__meta">
             <span>{post.date}</span>
             <span className="post-detail__meta-sep">·</span>
             <Link to={`/column/${post.column}`} style={{ color: 'var(--accent)' }}>
-              {column?.name}
+              {colName}
             </Link>
             <span className="post-detail__meta-sep">·</span>
-            <a
-              href={post.csdnUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="csdn-link-btn"
-            >
-              查看 CSDN 原文 ↗
+            <a href={post.csdnUrl} target="_blank" rel="noopener noreferrer" className="csdn-link-btn">
+              {t.post.csdnLink}
             </a>
           </div>
         </header>
 
-        {isPending && (
+        {showFallback && (
           <div className="content-pending-banner">
-            <span>⚠️ 文章内容尚未导入，请直接查看 CSDN 原文。</span>
+            <span>{t.post.noEnglish}</span>
+          </div>
+        )}
+
+        {isPending && !showFallback && (
+          <div className="content-pending-banner">
+            <span>{t.post.pendingBanner}</span>
           </div>
         )}
 
         {loading ? (
-          <div style={{ color: 'var(--text-secondary)', padding: '2rem 0' }}>加载中...</div>
+          <div style={{ color: 'var(--text-secondary)', padding: '2rem 0' }}>{t.post.loading}</div>
         ) : (
           <div className="post-content" ref={contentRef}>
             <ReactMarkdown
