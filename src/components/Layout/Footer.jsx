@@ -1,6 +1,9 @@
+// src/components/Layout/Footer.jsx
 import { Link } from 'react-router-dom'
+import { useLang } from '../../contexts/LangContext'
 
 export default function Footer() {
+  const { t } = useLang()
   const year = new Date().getFullYear()
   return (
     <footer className="footer">
@@ -13,8 +16,8 @@ export default function Footer() {
         {' · '}
         <a href="https://blog.csdn.net/BlackOrnate" target="_blank" rel="noopener noreferrer">CSDN</a>
         {' · '}
-        <Link to="/columns">76 篇文章</Link>
-        {' · 用 React + Vite 构建'}
+        <Link to="/columns">{t.footer.articles}</Link>
+        {' · '}{t.footer.built}
       </p>
     </footer>
   )
