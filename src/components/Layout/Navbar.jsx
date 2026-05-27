@@ -39,7 +39,7 @@ function useTheme() {
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false)
   const [isDark, toggleTheme] = useTheme()
-  const { t, toggle: toggleLang } = useLang()
+  const { lang, t, toggle: toggleLang } = useLang()
 
   useEffect(() => {
     const onKey = (e) => {
@@ -77,7 +77,7 @@ export default function Navbar() {
               <span>{t.search.trigger}</span>
             </button>
 
-            <button className="lang-toggle" onClick={toggleLang} aria-label={t.lang.ariaLabel}>
+            <button className="lang-toggle" onClick={toggleLang} aria-label={t.lang.ariaLabel} aria-pressed={lang === 'en'}>
               {t.lang.label}
             </button>
 

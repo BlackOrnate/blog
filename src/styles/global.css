@@ -255,14 +255,13 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   width: 32px;
   height: 32px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-secondary);
-  cursor: pointer;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color var(--transition), color var(--transition);
 }
 .lang-toggle:hover {
   border-color: var(--accent);
