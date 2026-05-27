@@ -97,18 +97,36 @@ export default function ColumnPage() {
           <p className="column-main__desc">{colDesc}</p>
         </div>
 
-        <div className="column-article-list">
-          {columnPosts.map((post, i) => {
-            const title = lang === 'en' ? (postTitlesEn[post.id] ?? post.title) : post.title
-            return (
-              <Link key={post.id} to={`/post/${post.id}`} className="column-article-item">
-                <span className="column-article-item__num">{String(i + 1).padStart(2, '0')}</span>
-                <span className="column-article-item__title">{title}</span>
-                <span className="column-article-item__date">{post.date}</span>
-              </Link>
-            )
-          })}
-        </div>
+        {getChildColumns(columnId).length > 0 ? (
+          <div className="subcolumn-grid">
+            {getChildColumns(columnId).map((child) => {
+              const childName = lang === 'en' ? (child.nameEn ?? child.name) : child.name
+              const childDesc = lang === 'en' ? (child.descEn ?? child.description) : child.description
+              const count = posts.filter((p) => p.column === child.id).length
+              return (
+                <Link key={child.id} to={`/column/${child.id}`} className="column-card">
+                  <div className="column-card__icon">{child.icon ?? column.icon}</div>
+                  <div className="column-card__name">{childName}</div>
+                  <div className="column-card__desc">{childDesc}</div>
+                  <div className="column-card__count">{count} {t.columns.articles}</div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="column-article-list">
+            {columnPosts.map((post, i) => {
+              const title = lang === 'en' ? (postTitlesEn[post.id] ?? post.title) : post.title
+              return (
+                <Link key={post.id} to={`/post/${post.id}`} className="column-article-item">
+                  <span className="column-article-item__num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="column-article-item__title">{title}</span>
+                  <span className="column-article-item__date">{post.date}</span>
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

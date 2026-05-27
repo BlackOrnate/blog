@@ -625,6 +625,12 @@ a.column-card:hover { color: inherit; }
   letter-spacing: -0.2px;
 }
 .column-main__desc { color: var(--text-secondary); font-size: 0.88rem; }
+.subcolumn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
 .column-article-list { display: flex; flex-direction: column; gap: 0; }
 .column-article-item {
   display: flex;
