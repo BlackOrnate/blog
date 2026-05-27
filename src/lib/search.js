@@ -1,34 +1,42 @@
+// src/lib/search.js
 import { posts } from '../data/posts'
 import { loadPostContent } from './content'
 
-let indexCache = null
-let indexBuildPromise = null
+const indexCache = { zh: null, en: null }
+const indexBuildPromise = { zh: null, en: null }
 
-export async function ensureSearchIndex() {
-  if (indexCache) return indexCache
-  if (indexBuildPromise) return indexBuildPromise
+export function resetSearchIndex() {
+  indexCache.zh = null
+  indexCache.en = null
+  indexBuildPromise.zh = null
+  indexBuildPromise.en = null
+}
 
-  indexBuildPromise = Promise.all(
+export async function ensureSearchIndex(lang = 'zh') {
+  if (indexCache[lang]) return indexCache[lang]
+  if (indexBuildPromise[lang]) return indexBuildPromise[lang]
+
+  indexBuildPromise[lang] = Promise.all(
     posts.map(async (post) => {
-      const content = await loadPostContent(post.contentPath)
+      const content = await loadPostContent(post.contentPath, lang)
       return { post, content: content || '' }
     })
   ).then((entries) => {
-    indexCache = entries
+    indexCache[lang] = entries
     return entries
   })
 
-  return indexBuildPromise
+  return indexBuildPromise[lang]
 }
 
 function stripMarkdown(text) {
   return text
-    .replace(/```[\s\S]*?```/g, ' ')   // remove code blocks
-    .replace(/`[^`]+`/g, ' ')           // remove inline code
-    .replace(/!\[.*?\]\(.*?\)/g, ' ')   // remove images
-    .replace(/\[.*?\]\(.*?\)/g, ' ')    // remove links
-    .replace(/^#{1,6}\s+/gm, ' ')       // remove heading markers
-    .replace(/[*_>|]/g, ' ')            // remove markdown symbols
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]+`/g, ' ')
+    .replace(/!\[.*?\]\(.*?\)/g, ' ')
+    .replace(/\[.*?\]\(.*?\)/g, ' ')
+    .replace(/^#{1,6}\s+/gm, ' ')
+    .replace(/[*_>|]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -63,6 +71,5 @@ export function searchInIndex(entries, query) {
       })
     }
   }
-  // Title matches appear first, then content-only matches
   return results.sort((a, b) => Number(b.titleMatch) - Number(a.titleMatch))
 }
