@@ -81,14 +81,14 @@ async function main() {
   const titlesMap = {}
   if (fs.existsSync(TITLES_FILE)) {
     const src = fs.readFileSync(TITLES_FILE, 'utf-8')
-    for (const m of src.matchAll(/(\d+):\s*'([^']+)'/g)) {
+    for (const m of src.matchAll(/(\d+):\s*"((?:[^"\\]|\\.)*)"/g)) {
       titlesMap[Number(m[1])] = m[2]
     }
   }
 
   function writeTitles() {
     const lines = Object.entries(titlesMap)
-      .map(([id, t]) => `  ${id}: '${t.replace(/'/g, "\\'")}'`)
+      .map(([id, t]) => `  ${id}: ${JSON.stringify(t)}`)
       .join(',\n')
     fs.writeFileSync(TITLES_FILE, `export const postTitlesEn = {\n${lines},\n}\n`, 'utf-8')
   }
