@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import Search from '../Search'
+import { useLang } from '../../contexts/LangContext'
 
 function SunIcon() {
   return (
@@ -38,9 +39,15 @@ function useTheme() {
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false)
   const [isDark, toggleTheme] = useTheme()
+  const { t, toggle: toggleLang } = useLang()
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setShowSearch(true) } }
+    const onKey = (e) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setShowSearch(true)
+      }
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
@@ -57,20 +64,24 @@ export default function Navbar() {
           <div className="navbar__right">
             <nav>
               <ul className="navbar__nav">
-                <li><NavLink to="/" end>首页</NavLink></li>
-                <li><NavLink to="/columns">专栏</NavLink></li>
-                <li><NavLink to="/about">关于</NavLink></li>
+                <li><NavLink to="/" end>{t.nav.home}</NavLink></li>
+                <li><NavLink to="/columns">{t.nav.columns}</NavLink></li>
+                <li><NavLink to="/about">{t.nav.about}</NavLink></li>
               </ul>
             </nav>
 
-            <button className="search-trigger" onClick={() => setShowSearch(true)} aria-label="搜索">
+            <button className="search-trigger" onClick={() => setShowSearch(true)} aria-label={t.search.trigger}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
-              <span>搜索</span>
+              <span>{t.search.trigger}</span>
             </button>
 
-            <button className="theme-toggle" onClick={toggleTheme} aria-label={isDark ? '切换浅色模式' : '切换深色模式'}>
+            <button className="lang-toggle" onClick={toggleLang} aria-label={t.lang.ariaLabel}>
+              {t.lang.label}
+            </button>
+
+            <button className="theme-toggle" onClick={toggleTheme} aria-label={isDark ? t.theme.light : t.theme.dark}>
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>
           </div>
