@@ -54,6 +54,7 @@ export default {
     articles: '76 Articles',
     built: 'Built with React + Vite',
   },
+  siteTitle: 'BlackOrnate · Tech Blog',
   lang: { label: '中', ariaLabel: 'Switch to Chinese' },
   theme: { dark: 'Switch to dark mode', light: 'Switch to light mode' },
 }

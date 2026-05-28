@@ -1,5 +1,5 @@
 // src/contexts/LangContext.jsx
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import zh from '../i18n/zh'
 import en from '../i18n/en'
 
@@ -9,6 +9,10 @@ const LangContext = createContext(null)
 
 export function LangProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'zh')
+
+  useEffect(() => {
+    document.title = strings[lang].siteTitle
+  }, [lang])
 
   const toggle = () => {
     const next = lang === 'zh' ? 'en' : 'zh'

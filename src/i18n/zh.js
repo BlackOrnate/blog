@@ -54,6 +54,7 @@ export default {
     articles: '76 篇文章',
     built: '用 React + Vite 构建',
   },
+  siteTitle: 'BlackOrnate · 技术博客',
   lang: { label: 'EN', ariaLabel: '切换为英文' },
   theme: { dark: '切换深色模式', light: '切换浅色模式' },
 }
