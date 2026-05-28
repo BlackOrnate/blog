@@ -42,13 +42,13 @@ function getAllMdFiles(dir, base = dir) {
   return files
 }
 
-// Replace code blocks and math with __KEEP_N__ placeholders before sending to DeepL.
-// DeepL treats identifiers of this form as untranslatable tokens.
+// Replace code blocks and math with [NTR_N] placeholders before sending to DeepL.
+// Square-bracket format avoids DeepL interpreting __ as Markdown bold markers.
 function protectNonTranslatable(text) {
   const saved = []
   let i = 0
   const save = (match) => {
-    const id = `__KEEP_${i++}__`
+    const id = `[NTR_${i++}]`
     saved.push({ id, original: match })
     return id
   }

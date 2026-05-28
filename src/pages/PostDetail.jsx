@@ -128,6 +128,7 @@ export default function PostDetail() {
   const [showFallback, setShowFallback] = useState(false)
   const contentRef = useRef(null)
   const isFirstMount = useRef(true)
+  const prevPostId = useRef(null)
 
   // Take over scroll restoration from the browser
   useEffect(() => {
@@ -144,8 +145,10 @@ export default function PostDetail() {
 
   useEffect(() => {
     if (!post) return
-    // On SPA navigation (not first mount / refresh), clear saved position
-    if (!isFirstMount.current) sessionStorage.removeItem(`scroll:${id}`)
+    const isLangSwitch = prevPostId.current === post.id
+    prevPostId.current = post.id
+    // Only clear saved scroll on actual navigation, not on language switch
+    if (!isFirstMount.current && !isLangSwitch) sessionStorage.removeItem(`scroll:${id}`)
     isFirstMount.current = false
     setLoading(true)
     setHeadings([])

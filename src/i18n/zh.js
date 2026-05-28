@@ -23,6 +23,8 @@ export default {
     pendingBanner: '⚠️ 文章内容尚未导入，请直接查看 CSDN 原文。',
     noEnglish: '*English version not available — showing Chinese*',
     csdnLink: '查看 CSDN 原文 ↗',
+    prev: '上一篇',
+    next: '下一篇',
   },
   search: {
     placeholder: '搜索标题与正文...',

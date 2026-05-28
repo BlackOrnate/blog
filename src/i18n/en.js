@@ -23,6 +23,8 @@ export default {
     pendingBanner: '⚠️ Article content not yet imported. Please view the original on CSDN.',
     noEnglish: '*English version not available — showing Chinese*',
     csdnLink: 'View on CSDN ↗',
+    prev: 'Previous',
+    next: 'Next',
   },
   search: {
     placeholder: 'Search titles and content...',
